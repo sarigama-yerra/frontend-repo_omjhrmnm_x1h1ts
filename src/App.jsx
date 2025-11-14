@@ -64,6 +64,37 @@ const LabubuLogin = ({
   const [errors, setErrors] = useState({ email: "", password: "", form: "" });
   const [submitting, setSubmitting] = useState(false);
 
+  // Use a built-in fallback if the placeholder token is still present
+  const resolvedImage = useMemo(() => {
+    const token = "{{LABUBU_IMAGE}}";
+    if (!labubuImageSrc || (typeof labubuImageSrc === "string" && labubuImageSrc.includes(token))) {
+      const svg = encodeURIComponent(`
+        <svg xmlns='http://www.w3.org/2000/svg' width='256' height='256' viewBox='0 0 256 256'>
+          <defs>
+            <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+              <stop offset='0%' stop-color='#FDE68A'/>
+              <stop offset='100%' stop-color='#C7D2FE'/>
+            </linearGradient>
+          </defs>
+          <rect width='256' height='256' rx='128' fill='url(#g)'/>
+          <!-- simple Labubu-like placeholder: ears + face circle -->
+          <g>
+            <ellipse cx='88' cy='52' rx='20' ry='28' fill='#fff' stroke='#e5e7eb' stroke-width='4'/>
+            <ellipse cx='168' cy='52' rx='20' ry='28' fill='#fff' stroke='#e5e7eb' stroke-width='4'/>
+            <circle cx='128' cy='128' r='68' fill='#ffffff' stroke='#e5e7eb' stroke-width='4'/>
+            <!-- eyes -->
+            <circle cx='104' cy='120' r='8' fill='#111827'/>
+            <circle cx='152' cy='120' r='8' fill='#111827'/>
+            <!-- tiny smile -->
+            <path d='M96 148 Q128 164 160 148' fill='none' stroke='#f43f5e' stroke-width='4' stroke-linecap='round'/>
+          </g>
+        </svg>
+      `);
+      return `data:image/svg+xml;charset=utf-8,${svg}`;
+    }
+    return labubuImageSrc;
+  }, [labubuImageSrc]);
+
   // Animation state
   const [isPeeking, setIsPeeking] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
@@ -261,7 +292,7 @@ const LabubuLogin = ({
           <h1 className="text-2xl font-semibold text-gray-800 mb-4">Welcome back</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <div className="flex items-center justify-center">
-              <img src={"{{LABUBU_IMAGE}}"} alt="Labubu" className="w-40 h-40 rounded-full object-contain" />
+              <img src={resolvedImage} alt="Labubu" className="w-40 h-40 rounded-full object-contain" />
             </div>
             <form method="post" className="space-y-4">
               <label className="block">
@@ -295,7 +326,7 @@ const LabubuLogin = ({
             >
               {/* Base image */}
               <img
-                src={"{{LABUBU_IMAGE}}"}
+                src={resolvedImage}
                 alt="Labubu"
                 className={`absolute inset-0 w-full h-full object-contain select-none pointer-events-none ${
                   isPeeking ? "lean" : ""
